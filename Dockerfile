@@ -4,6 +4,8 @@ WORKDIR /app
 FROM base AS deps
 RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
+# postinstall runs prisma generate — schema must exist before npm ci
+COPY prisma ./prisma/
 RUN npm ci
 
 FROM base AS builder
