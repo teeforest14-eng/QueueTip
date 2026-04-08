@@ -1,0 +1,498 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum Plan {
+  FREE
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum OnboardingJourneyState {
+  PREPARING_TO_FILE
+  ALREADY_FILED
+  RFE_OR_ISSUE
+  WAITING_TOO_LONG
+  JUST_EXPLORING
+}
+
+enum AppPath {
+  PREPARE
+  TRACK
+  RESOLVE
+  EXPLORE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  emailVerified DateTime?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  profile               UserProfile?
+  onboarding            OnboardingAnswer?
+  subscription          Subscription?
+  notifPrefs            NotificationPreference?
+  caseGroups            CaseGroup[]
+  cases                 Case[]
+  alerts                Alert[]
+  notifLogs             NotificationLog[]
+  reminderTasks         ReminderTask[]
+  savedItems            SavedExplorationItem[]
+  checklistProgress     UserChecklistProgress[]
+  accounts              Account[]
+  sessions              Session[]
+  passwordResetTokens   PasswordResetToken[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id      String   @id @default(cuid())
+  token   String   @unique
+  userId  String
+  expires DateTime
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserProfile {
+  id                    String  @id @default(cuid())
+  userId                String  @unique
+  firstName             String?
+  lastName              String?
+  preferredLanguage     String  @default("en")
+  countryRegion         String?
+  needsReminders        Boolean @default(true)
+  interestedLocalHelp   Boolean @default(false)
+  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OnboardingAnswer {
+  id              String                  @id @default(cuid())
+  userId          String                  @unique
+  completed       Boolean                 @default(false)
+  skipped         Boolean                 @default(false)
+  lastStep        Int                     @default(0)
+  journeyCategory OnboardingJourneyState?
+  familyCaseType  String?
+  alreadyFiled    Boolean?
+  formsInvolved   String[]
+  hasReceipt      Boolean?
+  currentConcern  String?
+  routedPath      AppPath?
+  answersJson     Json                    @default("{}")
+  updatedAt       DateTime                @updatedAt
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id               String             @id @default(cuid())
+  userId           String             @unique
+  plan             Plan               @default(FREE)
+  status           SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd DateTime?
+  stripeCustomerId String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model NotificationPreference {
+  id                String  @id @default(cuid())
+  userId            String  @unique
+  emailEnabled      Boolean @default(true)
+  inAppEnabled      Boolean @default(true)
+  statusChanges     Boolean @default(true)
+  delayThresholds   Boolean @default(true)
+  reminders         Boolean @default(true)
+  milestones        Boolean @default(true)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CaseGroup {
+  id        String   @id @default(cuid())
+  userId    String
+  label     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cases     Case[]
+}
+
+model Case {
+  id                 String    @id @default(cuid())
+  userId             String
+  caseGroupId        String
+  receiptNumber      String
+  formType           String
+  currentStatusLabel String?
+  lastSyncedAt       DateTime?
+  isStale            Boolean   @default(false)
+  syncUnavailable    Boolean   @default(false)
+  notes              String?   @db.Text
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  caseGroup CaseGroup            @relation(fields: [caseGroupId], references: [id], onDelete: Cascade)
+  snapshots CaseStatusSnapshot[]
+  events    CaseEvent[]
+  syncLogs  SyncLog[]
+
+  @@index([userId])
+  @@index([receiptNumber])
+}
+
+model CaseStatusSnapshot {
+  id          String   @id @default(cuid())
+  caseId      String
+  statusLabel String
+  description String?  @db.Text
+  capturedAt  DateTime @default(now())
+  source      String   @default("mock")
+  isOfficial  Boolean  @default(true)
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+}
+
+model CaseEvent {
+  id          String   @id @default(cuid())
+  caseId      String
+  title       String
+  description String?  @db.Text
+  kind        String
+  occurredAt  DateTime @default(now())
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+}
+
+model SyncLog {
+  id        String   @id @default(cuid())
+  caseId    String
+  success   Boolean
+  message   String?
+  createdAt DateTime @default(now())
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+}
+
+model Guide {
+  id        String        @id @default(cuid())
+  slug      String        @unique
+  title     String
+  summary   String        @db.Text
+  formType  String
+  status    ContentStatus @default(PUBLISHED)
+  sortOrder Int           @default(0)
+  overview  String        @db.Text
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  requiredForms GuideRequiredForm[]
+  checklistItems DocumentChecklistItem[]
+  mistakes      CommonMistake[]
+  rfeTriggers   RfeTrigger[]
+  guideResources GuideOfficialResource[]
+}
+
+model GuideRequiredForm {
+  id        String @id @default(cuid())
+  guideId   String
+  formCode  String
+  title     String
+  notes     String? @db.Text
+  sortOrder Int    @default(0)
+  guide     Guide  @relation(fields: [guideId], references: [id], onDelete: Cascade)
+}
+
+model DocumentChecklistItem {
+  id          String   @id @default(cuid())
+  guideId     String
+  label       String
+  whyMatters  String?  @db.Text
+  category    String?
+  sortOrder   Int      @default(0)
+  guide       Guide    @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  progress    UserChecklistProgress[]
+}
+
+model UserChecklistProgress {
+  id                String                @id @default(cuid())
+  userId            String
+  checklistItemId   String
+  completed         Boolean               @default(false)
+  savedLater        Boolean               @default(false)
+  updatedAt         DateTime              @updatedAt
+  user              User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checklistItem     DocumentChecklistItem @relation(fields: [checklistItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, checklistItemId])
+}
+
+model CommonMistake {
+  id          String @id @default(cuid())
+  guideId     String
+  title       String
+  description String @db.Text
+  severity    String @default("medium")
+  sortOrder   Int    @default(0)
+  guide       Guide  @relation(fields: [guideId], references: [id], onDelete: Cascade)
+}
+
+model RfeTrigger {
+  id        String @id @default(cuid())
+  guideId   String
+  title     String
+  pattern   String @db.Text
+  sortOrder Int    @default(0)
+  guide     Guide  @relation(fields: [guideId], references: [id], onDelete: Cascade)
+}
+
+model OfficialResource {
+  id          String                  @id @default(cuid())
+  name        String
+  url         String
+  description String                  @db.Text
+  category    String
+  guideLinks  GuideOfficialResource[]
+}
+
+model GuideOfficialResource {
+  guideId    String
+  resourceId String
+  guide      Guide            @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  resource   OfficialResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@id([guideId, resourceId])
+}
+
+model IssueCategory {
+  id        String       @id @default(cuid())
+  slug      String       @unique
+  name      String
+  sortOrder Int          @default(0)
+  guides    IssueGuide[]
+}
+
+model IssueGuide {
+  id                  String        @id @default(cuid())
+  categoryId          String
+  slug                String        @unique
+  title               String
+  typicalMeaning      String        @db.Text
+  whatUsuallyNext     String        @db.Text
+  whatToPrepare       String        @db.Text
+  whenToWait          String        @db.Text
+  whenToEscalate      String        @db.Text
+  likelyCausesJson    Json          @default("[]")
+  evidenceSignalsJson Json          @default("[]")
+  nextStepsJson       Json          @default("[]")
+  status              ContentStatus @default(PUBLISHED)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  category            IssueCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
+
+model InterpretationRule {
+  id            String  @id @default(cuid())
+  name          String
+  statusPattern String
+  outputJson    Json
+  priority      Int     @default(0)
+  active        Boolean @default(true)
+}
+
+model RecommendationRule {
+  id         String  @id @default(cuid())
+  name       String
+  condition  String  @db.Text
+  outputJson Json
+  priority   Int     @default(0)
+  active     Boolean @default(true)
+}
+
+model DelayThresholdConfig {
+  id                String @id @default(cuid())
+  key               String @unique
+  daysWithoutUpdate Int
+  description       String?
+}
+
+model HelpDirectoryEntry {
+  id          String              @id @default(cuid())
+  name        String
+  type        String
+  serviceArea String              @db.Text
+  website     String?
+  phone       String?
+  email       String?
+  notes       String?             @db.Text
+  published   Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  languages   HelpEntryLanguage[]
+  caseTypes   HelpEntryCaseType[]
+  regions     HelpEntryRegion[]
+}
+
+model HelpEntryLanguage {
+  entryId  String
+  language String
+  entry    HelpDirectoryEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@id([entryId, language])
+}
+
+model HelpEntryCaseType {
+  entryId  String
+  caseType String
+  entry    HelpDirectoryEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@id([entryId, caseType])
+}
+
+model HelpEntryRegion {
+  entryId String
+  region  String
+  entry   HelpDirectoryEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@id([entryId, region])
+}
+
+model OfficialToolEntry {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String  @db.Text
+  whyUse      String  @db.Text
+  whenToUse   String  @db.Text
+  url         String
+  sortOrder   Int     @default(0)
+  published   Boolean @default(true)
+}
+
+model Alert {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String    @db.Text
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model NotificationLog {
+  id        String   @id @default(cuid())
+  userId    String
+  channel   String
+  category  String
+  title     String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ReminderTask {
+  id          String    @id @default(cuid())
+  userId      String
+  title       String
+  dueAt       DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model NotificationTemplate {
+  id            String @id @default(cuid())
+  key           String @unique
+  titleTemplate String
+  bodyTemplate  String @db.Text
+}
+
+model FaqEntry {
+  id        String  @id @default(cuid())
+  question  String
+  answer    String  @db.Text
+  sortOrder Int     @default(0)
+  published Boolean @default(true)
+}
+
+model LandingPageSection {
+  id        String  @id @default(cuid())
+  key       String  @unique
+  title     String?
+  body      String  @db.Text
+  published Boolean @default(true)
+}
+
+model ContentRevision {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  dataJson   Json
+  createdAt  DateTime @default(now())
+  createdBy  String?
+}
+
+model SavedExplorationItem {
+  id        String   @id @default(cuid())
+  userId    String
+  refType   String
+  refId     String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
