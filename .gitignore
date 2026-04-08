@@ -42,3 +42,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Bundled in Docker image only (esbuild)
+prisma/seed.production.cjs
