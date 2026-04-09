@@ -19,6 +19,7 @@ import {
 import { buildRecommendationsForUser } from "@/lib/services/recommendation-service";
 import { interpretStatusLabel } from "@/lib/services/interpretation-service";
 import { getPlanForUser } from "@/lib/plan";
+import { DashboardLoadError } from "@/components/app/dashboard/dashboard-load-error";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +68,16 @@ export default async function DashboardPage() {
       : undefined;
   } catch (e) {
     console.error("[QueueTip] /app/dashboard data load failed:", e);
-    throw e;
+    const message =
+      e instanceof Error
+        ? e.message
+        : typeof e === "object" &&
+            e !== null &&
+            "message" in e &&
+            typeof (e as { message: unknown }).message === "string"
+          ? (e as { message: string }).message
+          : String(e);
+    return <DashboardLoadError message={message} />;
   }
 
   const greeting = profile?.firstName?.trim()

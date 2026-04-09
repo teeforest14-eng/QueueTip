@@ -9,24 +9,23 @@ export const dynamic = "force-dynamic";
 type Step = { step: string; ok: boolean; error?: string };
 
 /**
- * Pinpoints which DB/query step breaks after login. Enable with QUEUETIP_DIAGNOSTIC=1
- * (or NODE_ENV=development). While logged in, open GET /api/debug/app-load in the browser.
+ * Pinpoints which DB/query step breaks after login. Requires a valid session.
+ * Optional: set QUEUETIP_DIAGNOSTIC=0 to disable in production.
  */
 export async function GET() {
-  const enabled =
-    process.env.NODE_ENV !== "production" ||
-    process.env.QUEUETIP_DIAGNOSTIC === "1" ||
-    process.env.QUEUETIP_DIAGNOSTIC === "true";
-  if (!enabled) {
-    return NextResponse.json({ ok: false, error: "disabled" }, { status: 404 });
-  }
-
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json(
-      { ok: false, step: "auth", error: "No session" },
+      { ok: false, step: "auth", error: "No session — log in first" },
       { status: 401 },
     );
+  }
+
+  const disabled =
+    process.env.NODE_ENV === "production" &&
+    process.env.QUEUETIP_DIAGNOSTIC === "0";
+  if (disabled) {
+    return NextResponse.json({ ok: false, error: "disabled" }, { status: 404 });
   }
 
   const userId = session.user.id;
