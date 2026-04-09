@@ -5,12 +5,34 @@ import { AppTopNav } from "@/components/app/app-top-nav";
 import { DashboardLoadError } from "@/components/app/dashboard/dashboard-load-error";
 import { ensureOnboardingRow } from "@/lib/onboarding-flow";
 
+export const dynamic = "force-dynamic";
+
 export default async function MainAppLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const session = await auth();
+  let session;
+  try {
+    session = await auth();
+  } catch (e) {
+    console.error("[QueueTip] (main) layout auth() failed:", e);
+    const message =
+      e instanceof Error
+        ? e.message
+        : typeof e === "object" &&
+            e !== null &&
+            "message" in e &&
+            typeof (e as { message: unknown }).message === "string"
+          ? (e as { message: string }).message
+          : String(e);
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <DashboardLoadError message={`Session error: ${message}`} />
+      </div>
+    );
+  }
+
   if (!session?.user?.id) {
     redirect("/login");
   }

@@ -21,7 +21,7 @@ export default function AppAreaError({
       </h1>
       <p className="text-sm leading-relaxed text-qt-text-secondary">
         {error.message ||
-          "A server error occurred. Check database migrations and DATABASE_URL."}
+          `A server error occurred in the app shell. Check DATABASE_URL, run prisma migrate deploy on that database, and confirm AUTH_URL matches this site. Reference: ${error.digest ?? "n/a"}`}
       </p>
       {error.digest ? (
         <p className="font-mono text-xs text-qt-text-muted">
