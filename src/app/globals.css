@@ -10,6 +10,10 @@
   --qt-primary: #f6b26b;
   --qt-primary-hover: #e89c4e;
   --qt-primary-soft: #fce3c7;
+  /* Warm section background (matches marketing landing sections) */
+  --qt-warm-cream: #fff6e8;
+  /* Soft green section background (matches marketing trust band) */
+  --qt-trust-section: #eef7ee;
   --qt-support-blue: #a9d6ff;
   --qt-trust-green: #a8ddb5;
   --qt-premium-slate: #6f8faf;
@@ -31,6 +35,8 @@
   --color-qt-primary: var(--qt-primary);
   --color-qt-primary-hover: var(--qt-primary-hover);
   --color-qt-primary-soft: var(--qt-primary-soft);
+  --color-qt-warm-cream: var(--qt-warm-cream);
+  --color-qt-trust-section: var(--qt-trust-section);
   --color-qt-support: var(--qt-support-blue);
   --color-qt-trust: var(--qt-trust-green);
   --color-qt-slate: var(--qt-premium-slate);
@@ -228,4 +234,98 @@ a:focus-visible {
 
 .font-display {
   font-family: var(--font-display);
+}
+
+/* Login: line-only fields — no blue ring/glow; neutral black line only */
+.qt-login-line-input {
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  background: #ffffff !important;
+  color: #000000 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-bottom: 1px solid #000000 !important;
+  border-radius: 0 !important;
+}
+
+.qt-login-line-input:focus,
+.qt-login-line-input:focus-visible,
+.qt-login-line-input:active {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-bottom: 1px solid #000000 !important;
+}
+
+.qt-login-line-input:-webkit-autofill,
+.qt-login-line-input:-webkit-autofill:hover,
+.qt-login-line-input:-webkit-autofill:focus,
+.qt-login-line-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #000000 !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-bottom: 1px solid #000000 !important;
+}
+
+/* Signup: native select, same line-only look as login inputs */
+.qt-login-line-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-bottom: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' viewBox='0 0 12 8'%3E%3Cpath stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.25' d='m1.5 2.25 4.5 4 4.5-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0 center;
+  background-size: 12px 8px;
+  padding-right: 1.25rem;
+}
+
+.qt-login-line-select:focus,
+.qt-login-line-select:focus-visible,
+.qt-login-line-select:active {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-bottom: 1px solid #000000 !important;
+}
+
+/* Prepare guides: forced gap between title text and form badge (never glued) */
+.qt-prepare-guide-title-text {
+  display: inline;
+  margin-right: 12px;
+  vertical-align: baseline;
+}
+
+.qt-prepare-guide-badge-wrap {
+  display: inline-flex;
+  vertical-align: baseline;
+}
+
+/* Prepare route: unified white UI — no blue focus rings; orange matches product CTA */
+.prepare-page a:focus-visible,
+.prepare-page button:focus-visible {
+  outline: 2px solid var(--qt-primary);
+  outline-offset: 3px;
+}
+
+/* Track workspace: soft green band; focus rings match product CTA */
+.track-page {
+  min-height: 100%;
+}
+
+.track-page a:focus-visible,
+.track-page button:focus-visible {
+  outline: 2px solid var(--qt-primary);
+  outline-offset: 3px;
 }

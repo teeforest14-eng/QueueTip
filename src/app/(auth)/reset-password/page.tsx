@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { AuthFormCard } from "@/components/auth/auth-form-card";
+import { AuthPageHeader } from "@/components/auth/auth-page-header";
 import { ResetForm } from "./reset-form";
 
 export const metadata: Metadata = {
@@ -8,16 +10,16 @@ export const metadata: Metadata = {
 
 export default function ResetPasswordPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-qt-text">New password</h1>
-      <p className="mt-2 text-sm text-qt-text-secondary">
-        Choose a strong password you have not used elsewhere.
-      </p>
-      <div className="mt-8">
-        <Suspense fallback={<p className="text-sm text-qt-text-secondary">Loading…</p>}>
-          <ResetForm />
-        </Suspense>
-      </div>
-    </div>
+    <AuthFormCard>
+      <AuthPageHeader
+        title="New password"
+        subtitle="Choose a strong password you have not used elsewhere."
+      />
+      <Suspense
+        fallback={<p className="text-sm text-qt-text-secondary">Loading…</p>}
+      >
+        <ResetForm />
+      </Suspense>
+    </AuthFormCard>
   );
 }

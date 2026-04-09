@@ -5,7 +5,7 @@ type Variant = "primary" | "secondary" | "ghost" | "slate";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-qt-primary text-qt-text shadow-sm hover:bg-qt-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-qt-slate",
+    "bg-qt-primary text-neutral-950 shadow-sm hover:bg-qt-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-qt-slate",
   secondary:
     "bg-white text-qt-text border border-qt-soft-gray shadow-sm hover:bg-qt-mist",
   ghost: "text-qt-slate hover:bg-white/80",

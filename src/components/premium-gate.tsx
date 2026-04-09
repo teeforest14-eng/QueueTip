@@ -5,18 +5,21 @@ import { Badge } from "@/components/ui/badge";
 
 export function PremiumUpsellCard() {
   return (
-    <Card className="border-qt-primary-soft bg-gradient-to-br from-qt-primary-soft/40 to-qt-bg">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+    <Card className="border-qt-primary-soft/80 bg-gradient-to-br from-qt-primary-soft/35 via-white to-qt-mist/20 shadow-[0_12px_40px_-24px_rgba(17,17,17,0.15)]">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+        <div className="max-w-xl space-y-2">
           <Badge tone="soft">Premium</Badge>
-          <CardTitle className="mt-2">Go deeper when you are ready</CardTitle>
-          <p className="mt-2 text-sm text-qt-text-secondary">
-            Richer compare views, saved workflows, and expanded alerts—without
-            locking the basics that build trust.
+          <CardTitle className="mt-1 text-lg">
+            Deeper compare and history when your case is active
+          </CardTitle>
+          <p className="text-sm leading-relaxed text-qt-text-secondary">
+            Side-by-side views across grouped receipts, richer snapshot history,
+            and more room for alerts—optional. Free accounts keep core tools,
+            guides, and honest labeling.
           </p>
         </div>
-        <Link href="/app/billing">
-          <Button variant="slate" className="whitespace-nowrap">
+        <Link href="/app/billing" className="shrink-0">
+          <Button variant="slate" className="whitespace-nowrap px-5">
             View plans
           </Button>
         </Link>

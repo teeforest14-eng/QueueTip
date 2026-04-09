@@ -3,19 +3,26 @@
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useMemo, useState } from "react";
+import { LoginLineField } from "@/components/auth/login-line-field";
+import { LoginLineSelect } from "@/components/auth/login-line-select";
+import { QueueTipLogo } from "@/components/auth/queue-tip-logo";
+import { getSignupCountries } from "@/lib/signup-countries";
+
+const footerLinkClass =
+  "text-neutral-500 underline decoration-neutral-200 underline-offset-[5px] transition-colors duration-200 hover:text-neutral-800 hover:decoration-neutral-400";
 
 export function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const intent = searchParams.get("intent") ?? "";
+  const countries = useMemo(() => getSignupCountries(), []);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [country, setCountry] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -26,16 +33,23 @@ export function SignupForm() {
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, firstName, lastName }),
+      body: JSON.stringify({
+        email,
+        password,
+        firstName,
+        lastName,
+        country,
+      }),
     });
     const data = (await res.json().catch(() => ({}))) as {
       error?: unknown;
     };
     if (!res.ok) {
       setLoading(false);
+      const err = data.error;
       setError(
-        typeof data.error === "string"
-          ? data.error
+        typeof err === "string"
+          ? err
           : "Could not create account.",
       );
       return;
@@ -57,68 +71,98 @@ export function SignupForm() {
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="space-y-4 rounded-2xl border border-qt-soft-gray bg-qt-bg p-6 shadow-sm"
-    >
-      {error ? (
-        <p className="text-sm text-red-700" role="alert">
-          {error}
-        </p>
-      ) : null}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <Label htmlFor="firstName">First name (optional)</Label>
-          <Input
+    <div className="mx-auto flex w-full max-w-[min(100%,18.5rem)] flex-col">
+      <div className="mb-10 flex justify-center">
+        <QueueTipLogo />
+      </div>
+
+      <h1 className="mb-14 text-center text-[0.8125rem] font-medium uppercase tracking-[0.14em] text-neutral-400">
+        Create account
+      </h1>
+
+      <form onSubmit={onSubmit} className="flex flex-col">
+        {error ? (
+          <p
+            className="mb-10 text-center text-sm leading-relaxed text-red-600"
+            role="alert"
+          >
+            {error}
+          </p>
+        ) : null}
+
+        <div className="flex flex-col gap-10">
+          <LoginLineField
             id="firstName"
-            className="mt-1"
+            label="First name (optional)"
+            autoComplete="given-name"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
           />
-        </div>
-        <div>
-          <Label htmlFor="lastName">Last name (optional)</Label>
-          <Input
+          <LoginLineField
             id="lastName"
-            className="mt-1"
+            label="Last name (optional)"
+            autoComplete="family-name"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
           />
+          <LoginLineField
+            id="email"
+            label="Email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <LoginLineSelect
+            id="country"
+            label="Country"
+            required
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            autoComplete="country"
+          >
+            <option value="">Select country</option>
+            {countries.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name}
+              </option>
+            ))}
+          </LoginLineSelect>
+          <div>
+            <LoginLineField
+              id="password"
+              label="Password"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={8}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <p className="mt-2 text-xs text-neutral-400">
+              At least 8 characters.
+            </p>
+          </div>
         </div>
-      </div>
-      <div>
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          required
-          className="mt-1"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
-      <div>
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          required
-          minLength={8}
-          className="mt-1"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <p className="mt-1 text-xs text-qt-text-muted">At least 8 characters.</p>
-      </div>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Creating…" : "Create account"}
-      </Button>
-      <p className="text-center text-sm text-qt-text-secondary">
-        Already have an account?{" "}
-        <Link href="/login" className="font-medium text-qt-slate underline">
-          Log in
-        </Link>
-      </p>
-    </form>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="mt-14 w-full rounded-sm bg-qt-primary py-3.5 text-[15px] font-medium tracking-[-0.015em] text-neutral-950 transition-[background-color,opacity] duration-200 ease-out hover:bg-qt-primary-hover disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-qt-slate"
+        >
+          {loading ? "Creating account…" : "Create account"}
+        </button>
+
+        <div className="mt-20 flex flex-col items-center gap-6">
+          <p className="text-center text-xs text-neutral-400">
+            Already have an account?{" "}
+            <Link href="/login" className={footerLinkClass}>
+              Log in
+            </Link>
+          </p>
+        </div>
+      </form>
+    </div>
   );
 }

@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { OnboardingJourneyState } from "@prisma/client";
-import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -288,34 +287,44 @@ export function OnboardingWizard({ initialStep }: { initialStep: number }) {
         </Card>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <button
           type="button"
-          variant="ghost"
           onClick={skip}
           disabled={saving}
+          className="qt-cta-line inline-flex items-center border-0 bg-transparent py-1 text-sm font-semibold tracking-tight text-qt-text-secondary transition-colors hover:text-qt-text disabled:pointer-events-none disabled:opacity-50"
         >
           Skip for now
-        </Button>
-        <div className="flex gap-2">
+        </button>
+        <div className="flex flex-wrap items-center gap-6">
           {step > 0 ? (
-            <Button
+            <button
               type="button"
-              variant="secondary"
               onClick={goBack}
               disabled={saving}
+              className="qt-cta-line inline-flex items-center border-0 bg-transparent py-1 text-sm font-semibold tracking-tight text-qt-text transition-colors hover:text-qt-slate disabled:pointer-events-none disabled:opacity-50"
             >
               Back
-            </Button>
+            </button>
           ) : null}
           {step < totalSteps - 1 ? (
-            <Button type="button" onClick={goNext} disabled={saving}>
-              Continue
-            </Button>
+            <button
+              type="button"
+              onClick={goNext}
+              disabled={saving}
+              className="qt-cta-line inline-flex items-center border-0 bg-transparent py-1 text-sm font-semibold tracking-tight text-qt-text transition-colors hover:text-qt-slate disabled:pointer-events-none disabled:opacity-50"
+            >
+              Next
+            </button>
           ) : (
-            <Button type="button" onClick={finish} disabled={saving}>
+            <button
+              type="button"
+              onClick={finish}
+              disabled={saving}
+              className="qt-cta-line inline-flex items-center border-0 bg-transparent py-1 text-sm font-semibold tracking-tight text-qt-text transition-colors hover:text-qt-slate disabled:pointer-events-none disabled:opacity-50"
+            >
               Finish
-            </Button>
+            </button>
           )}
         </div>
       </div>

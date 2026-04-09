@@ -22,7 +22,7 @@ export function HeroSection() {
   const mockupY = useTransform(scrollYProgress, [0, 1], [0, -14]);
 
   return (
-    <section ref={ref} className="relative overflow-hidden border-b border-qt-soft-gray bg-[#FFF6E8]">
+    <section ref={ref} className="relative overflow-hidden border-b border-qt-soft-gray bg-qt-warm-cream">
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.55]"
         aria-hidden

@@ -8,6 +8,10 @@ const schema = z.object({
   password: z.string().min(8, "Use at least 8 characters"),
   firstName: z.string().max(120).optional(),
   lastName: z.string().max(120).optional(),
+  country: z
+    .string()
+    .length(2, "Select your country")
+    .regex(/^[A-Z]{2}$/, "Select your country"),
 });
 
 export async function POST(req: Request) {
@@ -19,12 +23,10 @@ export async function POST(req: Request) {
   }
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.flatten().fieldErrors },
-      { status: 400 },
-    );
+    const msg = parsed.error.issues[0]?.message ?? "Invalid request";
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
-  const { email, password, firstName, lastName } = parsed.data;
+  const { email, password, firstName, lastName, country } = parsed.data;
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     return NextResponse.json(
@@ -41,6 +43,7 @@ export async function POST(req: Request) {
         create: {
           firstName: firstName ?? null,
           lastName: lastName ?? null,
+          countryRegion: country,
         },
       },
       subscription: { create: { plan: "FREE", status: "ACTIVE" } },

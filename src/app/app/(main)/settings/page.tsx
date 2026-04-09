@@ -20,8 +20,8 @@ export default async function SettingsPage() {
       <div>
         <h1 className="text-2xl font-semibold text-qt-text">Settings</h1>
         <p className="mt-2 text-sm text-qt-text-secondary">
-          Profile, notification categories, and onboarding snapshot (read-only
-          summary).
+          Profile and notifications are editable here. Onboarding below is a
+          read-only summary.
         </p>
       </div>
       <Card>

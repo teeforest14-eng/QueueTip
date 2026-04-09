@@ -84,7 +84,7 @@ export default function LandingPage() {
 
       <section
         id="trust-layer"
-        className="scroll-mt-28 border-b border-qt-soft-gray bg-[#EEF7EE] py-20 sm:py-30 lg:py-40"
+        className="scroll-mt-28 border-b border-qt-soft-gray bg-qt-trust-section py-20 sm:py-30 lg:py-40"
       >
         <ScrollReveal className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <SectionHeader
@@ -158,7 +158,7 @@ export default function LandingPage() {
         </ScrollReveal>
       </section>
 
-      <section className="border-b border-qt-soft-gray bg-[#FFF6E8] py-14 sm:py-20 lg:py-24">
+      <section className="border-b border-qt-soft-gray bg-qt-warm-cream py-14 sm:py-20 lg:py-24">
         <ScrollReveal className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
             <p className="font-display text-[clamp(2rem,4.2vw,3.8rem)] leading-[1.02] tracking-tight text-qt-text lg:col-span-8">
@@ -208,7 +208,7 @@ export default function LandingPage() {
 
       <section
         id="how-it-works"
-        className="scroll-mt-28 border-b border-qt-soft-gray bg-[#FFF6E8] py-20 sm:py-30 lg:py-40"
+        className="scroll-mt-28 border-b border-qt-soft-gray bg-qt-warm-cream py-20 sm:py-30 lg:py-40"
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <ScrollReveal>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { AppTopNav } from "@/components/app/app-top-nav";
 import { redirectIfNeedsOnboarding } from "@/lib/onboarding-flow";
@@ -10,7 +11,7 @@ export default async function MainAppLayout({
 }) {
   const session = await auth();
   if (!session?.user?.id) {
-    return null;
+    redirect("/login");
   }
   await redirectIfNeedsOnboarding(session.user.id);
   return (

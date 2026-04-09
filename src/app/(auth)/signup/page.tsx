@@ -8,17 +8,12 @@ export const metadata: Metadata = {
 
 export default function SignupPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-qt-text">Create your account</h1>
-      <p className="mt-2 text-sm text-qt-text-secondary">
-        You will complete a short onboarding flow next so we can route you to
-        the right path.
-      </p>
-      <div className="mt-8">
-        <Suspense fallback={<p className="text-sm text-qt-text-secondary">Loading…</p>}>
-          <SignupForm />
-        </Suspense>
-      </div>
-    </div>
+    <Suspense
+      fallback={
+        <p className="py-8 text-center text-xs text-neutral-400">Loading…</p>
+      }
+    >
+      <SignupForm />
+    </Suspense>
   );
 }

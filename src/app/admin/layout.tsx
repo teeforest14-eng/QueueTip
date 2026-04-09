@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { BrandLockup } from "@/components/marketing/brand-lockup";
 import { requireAdmin } from "@/lib/require-admin";
 
 const links = [
@@ -21,8 +22,13 @@ export default async function AdminLayout({
   return (
     <div className="min-h-full bg-qt-mist">
       <header className="border-b border-qt-soft-gray bg-qt-bg">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="font-semibold text-qt-text">QueueTip Admin</span>
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3 sm:px-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <BrandLockup variant="app" href="/admin" />
+            <span className="hidden text-sm font-semibold text-qt-text sm:inline">
+              Admin
+            </span>
+          </div>
           <nav className="flex flex-wrap gap-3 text-sm">
             {links.map((l) => (
               <Link

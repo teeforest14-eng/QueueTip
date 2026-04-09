@@ -40,7 +40,7 @@ export default function PricingPage() {
           </ul>
           <Link
             href="/signup"
-            className="mt-10 inline-block rounded-lg bg-qt-primary px-5 py-3 text-sm font-semibold text-qt-text shadow-sm hover:bg-qt-primary-hover"
+            className="mt-10 inline-block rounded-lg bg-qt-primary px-5 py-3 text-sm font-semibold text-neutral-950 shadow-sm hover:bg-qt-primary-hover"
           >
             Start free
           </Link>

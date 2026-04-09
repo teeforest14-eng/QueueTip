@@ -18,7 +18,7 @@ export function UpgradeButton() {
       setMsg("Could not upgrade.");
       return;
     }
-    setMsg("Upgraded to Premium (placeholder).");
+    setMsg("You are now on Premium on this account (demo upgrade).");
     router.refresh();
   }
 

@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { AuthField } from "@/components/auth/auth-field";
+import { AuthPrimaryButton } from "@/components/auth/auth-primary-button";
+import { LockIcon } from "@/components/auth/lock-icon";
 
 export function ResetForm() {
   const router = useRouter();
@@ -34,38 +34,47 @@ export function ResetForm() {
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="space-y-4 rounded-2xl border border-qt-soft-gray bg-qt-bg p-6 shadow-sm"
-    >
+    <form onSubmit={onSubmit} className="space-y-5">
       {!token ? (
-        <p className="text-sm text-red-700">
+        <p className="rounded-[10px] border border-amber-200/90 bg-amber-50 px-3 py-2.5 text-sm text-amber-950">
           Missing token. Open the link from your reset email (or dev server
           log).
         </p>
       ) : null}
       {error ? (
-        <p className="text-sm text-red-700" role="alert">
+        <p
+          className="rounded-[10px] border border-rose-200/90 bg-rose-50 px-3 py-2.5 text-sm text-rose-900"
+          role="alert"
+        >
           {error}
         </p>
       ) : null}
-      <div>
-        <Label htmlFor="password">New password</Label>
-        <Input
-          id="password"
-          type="password"
-          minLength={8}
-          required
-          className="mt-1"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+      <AuthField
+        id="password"
+        label="New password"
+        type="password"
+        autoComplete="new-password"
+        minLength={8}
+        required
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        trailing={<LockIcon />}
+        hint="At least 8 characters."
+      />
+      <div className="pt-1">
+        <AuthPrimaryButton
+          loading={loading}
+          loadingLabel="Saving…"
+          disabled={!token}
+        >
+          Update password
+        </AuthPrimaryButton>
       </div>
-      <Button type="submit" className="w-full" disabled={loading || !token}>
-        {loading ? "Saving…" : "Update password"}
-      </Button>
-      <p className="text-center text-sm text-qt-text-secondary">
-        <Link href="/login" className="text-qt-slate underline">
+      <p className="pt-1 text-center text-sm text-qt-text-secondary">
+        <Link
+          href="/login"
+          className="font-medium text-qt-slate underline decoration-qt-soft-gray underline-offset-[5px] transition-colors duration-200 hover:text-qt-text hover:decoration-qt-slate/40"
+        >
           Log in
         </Link>
       </p>

@@ -186,6 +186,9 @@ model Case {
   isStale            Boolean   @default(false)
   syncUnavailable    Boolean   @default(false)
   notes              String?   @db.Text
+  fieldOffice        String?
+  serviceCenter      String?
+  priorityDate       DateTime?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 

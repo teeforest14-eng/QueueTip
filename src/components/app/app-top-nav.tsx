@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { BrandLockup } from "@/components/marketing/brand-lockup";
 import { cn } from "@/lib/cn";
 
 const links = [
@@ -21,11 +22,9 @@ export function AppTopNav({ email }: { email?: string | null }) {
   return (
     <header className="border-b border-qt-soft-gray bg-qt-bg/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/app/dashboard" className="font-semibold text-qt-text">
-            QueueTip
-          </Link>
-          <span className="hidden text-xs text-qt-text-muted sm:inline">
+        <div className="flex min-w-0 items-center gap-3">
+          <BrandLockup variant="app" href="/app/dashboard" />
+          <span className="hidden truncate text-xs text-qt-text-muted sm:inline">
             {email}
           </span>
         </div>

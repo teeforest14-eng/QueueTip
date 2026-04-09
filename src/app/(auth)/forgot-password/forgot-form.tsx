@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { AuthField } from "@/components/auth/auth-field";
+import { AuthPrimaryButton } from "@/components/auth/auth-primary-button";
 
 export function ForgotForm() {
   const [email, setEmail] = useState("");
@@ -26,31 +25,34 @@ export function ForgotForm() {
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="space-y-4 rounded-2xl border border-qt-soft-gray bg-qt-bg p-6 shadow-sm"
-    >
+    <form onSubmit={onSubmit} className="space-y-5">
       {message ? (
-        <p className="text-sm text-qt-text-secondary" role="status">
+        <p
+          className="rounded-[10px] border border-qt-soft-gray bg-qt-stone-50 px-3 py-2.5 text-sm text-qt-text-secondary"
+          role="status"
+        >
           {message}
         </p>
       ) : null}
-      <div>
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          required
-          className="mt-1"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+      <AuthField
+        id="email"
+        label="Email"
+        type="email"
+        autoComplete="email"
+        required
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <div className="pt-1">
+        <AuthPrimaryButton loading={loading} loadingLabel="Sending…">
+          Send reset link
+        </AuthPrimaryButton>
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Sending…" : "Send reset link"}
-      </Button>
-      <p className="text-center text-sm text-qt-text-secondary">
-        <Link href="/login" className="text-qt-slate underline">
+      <p className="pt-1 text-center text-sm text-qt-text-secondary">
+        <Link
+          href="/login"
+          className="font-medium text-qt-slate underline decoration-qt-soft-gray underline-offset-[5px] transition-colors duration-200 hover:text-qt-text hover:decoration-qt-slate/40"
+        >
           Back to log in
         </Link>
       </p>

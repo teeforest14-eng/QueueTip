@@ -15,8 +15,9 @@ export default async function BillingPage() {
       <div>
         <h1 className="text-2xl font-semibold text-qt-text">Billing</h1>
         <p className="mt-2 text-sm text-qt-text-secondary">
-          V1 uses a placeholder upgrade path. Connect Stripe (or similar) before
-          charging real users.
+          Upgrade below switches this account to Premium for product testing.
+          Before real billing, connect Stripe (or similar) and replace the demo
+          API route.
         </p>
       </div>
       <Card>

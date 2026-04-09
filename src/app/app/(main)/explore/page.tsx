@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Card, CardTitle } from "@/components/ui/card";
+import { appPrimaryCtaClass } from "@/lib/app-cta-styles";
 
 export default function ExplorePage() {
   return (
@@ -35,10 +36,7 @@ export default function ExplorePage() {
       <Card>
         <CardTitle>Convert into a focused path</CardTitle>
         <div className="mt-4 flex flex-wrap gap-3">
-          <Link
-            href="/app/prepare"
-            className="rounded-lg bg-qt-primary px-4 py-2 text-sm font-medium text-qt-text hover:bg-qt-primary-hover"
-          >
+          <Link href="/app/prepare" className={appPrimaryCtaClass}>
             Start Prepare
           </Link>
           <Link
