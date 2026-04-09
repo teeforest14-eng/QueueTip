@@ -3,11 +3,29 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { OnboardingWizard } from "./onboarding-wizard";
 import { ensureOnboardingRow } from "@/lib/onboarding-flow";
+import { DashboardLoadError } from "@/components/app/dashboard/dashboard-load-error";
 
 export default async function OnboardingPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
-  const onb = await ensureOnboardingRow(session.user.id);
+
+  let onb;
+  try {
+    onb = await ensureOnboardingRow(session.user.id);
+  } catch (e) {
+    console.error("[QueueTip] onboarding page ensureOnboardingRow failed:", e);
+    const message =
+      e instanceof Error
+        ? e.message
+        : typeof e === "object" &&
+            e !== null &&
+            "message" in e &&
+            typeof (e as { message: unknown }).message === "string"
+          ? (e as { message: string }).message
+          : String(e);
+    return <DashboardLoadError message={message} />;
+  }
+
   if (onb.completed || onb.skipped) {
     redirect("/app/dashboard");
   }

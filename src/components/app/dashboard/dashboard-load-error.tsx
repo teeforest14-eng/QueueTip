@@ -9,7 +9,7 @@ export function DashboardLoadError({ message }: { message: string }) {
           Workspace data
         </p>
         <h1 className="mt-2 font-display text-xl font-semibold text-qt-text">
-          We couldn’t load your dashboard
+          We couldn’t load your workspace
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-qt-text-secondary">
           The app could not read your account data from the database. This is
