@@ -8,9 +8,20 @@ export async function GET() {
   try {
     await prisma.$queryRaw`SELECT 1`;
     return NextResponse.json({ ok: true, database: "up" });
-  } catch {
+  } catch (e) {
+    const code =
+      e && typeof e === "object" && "code" in e
+        ? String((e as { code: unknown }).code)
+        : undefined;
+    const message =
+      e instanceof Error ? e.message : e ? String(e) : "unknown";
     return NextResponse.json(
-      { ok: false, database: "error" },
+      {
+        ok: false,
+        database: "error",
+        prismaCode: code,
+        message,
+      },
       { status: 503 },
     );
   }

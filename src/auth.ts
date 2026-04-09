@@ -36,18 +36,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       authorize: async (raw) => {
-        const parsed = credentialsSchema.safeParse(raw);
-        if (!parsed.success) return null;
-        const { email, password } = parsed.data;
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) return null;
-        const ok = await bcrypt.compare(password, user.passwordHash);
-        if (!ok) return null;
-        return {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-        };
+        try {
+          const parsed = credentialsSchema.safeParse(raw);
+          if (!parsed.success) return null;
+          const { email, password } = parsed.data;
+          const user = await prisma.user.findUnique({ where: { email } });
+          if (!user) return null;
+          const ok = await bcrypt.compare(password, user.passwordHash);
+          if (!ok) return null;
+          return {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+          };
+        } catch (e) {
+          console.error("[QueueTip] credentials authorize / DB error:", e);
+          return null;
+        }
       },
     }),
   ],
