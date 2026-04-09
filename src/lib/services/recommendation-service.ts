@@ -31,7 +31,9 @@ export async function buildRecommendationsForUser(userId: string): Promise<
   const pushFromRule = (condition: string) => {
     const rule = rules.find((r) => r.condition === condition);
     if (!rule) return;
-    const j = rule.outputJson as Record<string, string>;
+    const raw = rule.outputJson;
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return;
+    const j = raw as Record<string, string>;
     cards.push({
       title: j.title ?? "Suggested next step",
       why: j.why ?? "",

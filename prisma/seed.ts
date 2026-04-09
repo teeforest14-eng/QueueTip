@@ -1,5 +1,7 @@
 import { PrismaClient, ContentStatus, Plan } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { RESOLVE_ISSUES } from "../src/data/resolve-issues-data";
+import { RESOLVE_CATEGORIES } from "../src/data/resolve-issues-types";
 
 const prisma = new PrismaClient();
 
@@ -447,25 +449,16 @@ async function main() {
     });
   }
 
-  const categories = [
-    { slug: "rfe", name: "I received an RFE", sortOrder: 0 },
-    { slug: "long-wait", name: "My case is taking too long", sortOrder: 1 },
-    { slug: "no-update", name: "No update for a long time", sortOrder: 2 },
-    { slug: "biometrics", name: "Biometrics confusion", sortOrder: 3 },
-    { slug: "interview", name: "Interview uncertainty", sortOrder: 4 },
-    { slug: "ead", name: "EAD / work authorization delay", sortOrder: 5 },
-    { slug: "travel", name: "Travel document delay", sortOrder: 6 },
-    { slug: "status-confusion", name: "Case status confusion", sortOrder: 7 },
-    { slug: "notice", name: "Missing notice or document", sortOrder: 8 },
-    { slug: "escalate", name: "When to escalate", sortOrder: 9 },
-    { slug: "wait-or-act", name: "Unsure whether to wait or act", sortOrder: 10 },
-  ];
+  await prisma.issueGuide.deleteMany({});
+  await prisma.issueCategory.deleteMany({});
 
-  for (const c of categories) {
-    await prisma.issueCategory.upsert({
-      where: { slug: c.slug },
-      create: c,
-      update: { name: c.name, sortOrder: c.sortOrder },
+  for (const c of RESOLVE_CATEGORIES) {
+    await prisma.issueCategory.create({
+      data: {
+        slug: c.slug,
+        name: c.name,
+        sortOrder: c.sortOrder,
+      },
     });
   }
 
@@ -475,171 +468,27 @@ async function main() {
     return x.id;
   };
 
-  const issueGuides: Array<{
-    categorySlug: string;
-    slug: string;
-    title: string;
-    typicalMeaning: string;
-    whatUsuallyNext: string;
-    whatToPrepare: string;
-    whenToWait: string;
-    whenToEscalate: string;
-    likelyCauses: string[];
-    evidence: string[];
-    nextSteps: string[];
-  }> = [
-    {
-      categorySlug: "rfe",
-      slug: "rfe-received",
-      title: "You received a Request for Evidence (RFE)",
-      typicalMeaning:
-        "An RFE means USCIS needs specific additional information or documents before it can continue processing in the usual way.",
-      whatUsuallyNext:
-        "USCIS typically gives a deadline to respond. Missing the deadline can lead to denial or other adverse action depending on the case.",
-      whatToPrepare:
-        "A cover letter listing exhibits, exact copies of what they asked for, translations if required, and proof of mailing or online submission per instructions.",
-      whenToWait:
-        "After you respond completely, it is common to wait while the case returns to the queue for review.",
-      whenToEscalate:
-        "If the RFE is unclear, asks for something you cannot obtain, or overlaps with complex legal questions, consider accredited help or an attorney.",
-      likelyCauses: [
-        "Evidence was missing or not legible",
-        "Relationship or financial documents were thin",
-        "Form answers did not match supporting records",
-      ],
-      evidence: [
-        "You have a PDF or paper RFE with a response due date",
-        "Your online status mentions a request for evidence",
-      ],
-      nextSteps: [
-        "Read the RFE line by line and map each item to a document",
-        "Download current form editions if resubmitting updated forms",
-        "Keep a copy of everything you send",
-      ],
-    },
-    {
-      categorySlug: "long-wait",
-      slug: "case-too-long",
-      title: "Your case feels slower than expected",
-      typicalMeaning:
-        "Many family-based cases move in phases; published processing times are ranges and change with workload.",
-      whatUsuallyNext:
-        "If you are still within posted ranges, many people continue monitoring and gather documents for possible interview or RFE.",
-      whatToPrepare:
-        "Updated joint documents (if applicable), travel history, employment history, and any address updates ready for forms if requested.",
-      whenToWait:
-        "When you are within USCIS posted ranges and there are no error signals, waiting while checking official tools periodically is common.",
-      whenToEscalate:
-        "If you are far outside posted ranges, have urgent humanitarian factors, or see clear errors, consider e-Request (if eligible) or qualified help.",
-      likelyCauses: [
-        "Field office or service center backlog",
-        "Background check or administrative processing",
-        "File transfer between offices",
-      ],
-      evidence: [
-        "Receipt date and current posted processing time window",
-        "Screenshot or note of last status change date",
-      ],
-      nextSteps: [
-        "Check official processing times for your form and location",
-        "Confirm your mailing address on file is current",
-        "Avoid unofficial “guaranteed timeline” services",
-      ],
-    },
-    {
-      categorySlug: "biometrics",
-      slug: "biometrics-confusion",
-      title: "Biometrics appointment confusion",
-      typicalMeaning:
-        "USCIS often schedules biometrics at an Application Support Center; status may update before and after you attend.",
-      whatUsuallyNext:
-        "If you missed an appointment, follow USCIS instructions to reschedule. If you attended, processing usually continues behind the scenes.",
-      whatToPrepare:
-        "Appointment notice, valid ID, and any ASC-specific instructions.",
-      whenToWait:
-        "After biometrics are captured, many cases enter a quiet processing period.",
-      whenToEscalate:
-        "If appointments were missed due to emergencies, or notices never arrived despite correct address, use official channels or get help.",
-      likelyCauses: ["Notice mailed to old address", "ASC closures or reschedules"],
-      evidence: ["Form I-797C notices", "Online case status mentions biometrics"],
-      nextSteps: [
-        "Verify address on file",
-        "Bring required ID to ASC",
-        "Keep the stamped notice if provided",
-      ],
-    },
-    {
-      categorySlug: "ead",
-      slug: "ead-delay",
-      title: "EAD is delayed",
-      typicalMeaning:
-        "EAD timelines fluctuate; USCIS publishes ranges that are estimates, not promises.",
-      whatUsuallyNext:
-        "Many applicants monitor status, ensure photos and categories were correct, and consider official inquiry options if eligible.",
-      whatToPrepare:
-        "Copy of receipt, category code used, and any prior EAD cards.",
-      whenToWait:
-        "If you are still inside published ranges, waiting is common.",
-      whenToEscalate:
-        "If you face job loss risk and meet USCIS criteria for inquiries, explore official options with qualified help.",
-      likelyCauses: ["Category errors", "Photo issues", "Background checks"],
-      evidence: ["Receipt number", "Current posted I-765 times"],
-      nextSteps: [
-        "Confirm correct category on I-765",
-        "Check USCIS processing times tool",
-        "Discuss expedite criteria with accredited help if urgent",
-      ],
-    },
-    {
-      categorySlug: "status-confusion",
-      slug: "status-does-not-match",
-      title: "Online status does not match what you expect",
-      typicalMeaning:
-        "USCIS online status is a high-level summary; it may lag or use generic wording.",
-      whatUsuallyNext:
-        "Compare with your paper notices and use official tools; avoid assuming the worst from a single ambiguous line.",
-      whatToPrepare:
-        "All I-797 notices, return receipts, and a timeline of what happened.",
-      whenToWait:
-        "If you recently mailed a response, allow mail and scanning time before expecting updates.",
-      whenToEscalate:
-        "If you believe there is a true USCIS error, document it carefully and use official inquiry paths or counsel.",
-      likelyCauses: ["Lag in online updates", "Multiple forms in one group"],
-      evidence: ["Different statuses across related receipts"],
-      nextSteps: [
-        "Write down each receipt and last change date",
-        "Open each receipt separately in Case Status",
-        "Keep PDFs of notices",
-      ],
-    },
-  ];
-
-  for (const ig of issueGuides) {
-    await prisma.issueGuide.upsert({
-      where: { slug: ig.slug },
-      create: {
+  for (const ig of RESOLVE_ISSUES) {
+    await prisma.issueGuide.create({
+      data: {
         categoryId: await cat(ig.categorySlug),
         slug: ig.slug,
         title: ig.title,
+        summary: ig.summary,
+        urgencyLevel: ig.urgencyLevel,
+        triageLane: ig.triageLane,
+        formsAffectedJson: ig.formsAffected,
+        lawyerRecommended: ig.lawyerRecommended,
+        officialResourceLinksJson: ig.officialResourceLinks,
+        relatedSlugsJson: ig.relatedSlugs,
+        whyPeopleWorry: ig.whyPeopleWorry,
         typicalMeaning: ig.typicalMeaning,
         whatUsuallyNext: ig.whatUsuallyNext,
         whatToPrepare: ig.whatToPrepare,
         whenToWait: ig.whenToWait,
         whenToEscalate: ig.whenToEscalate,
         likelyCausesJson: ig.likelyCauses,
-        evidenceSignalsJson: ig.evidence,
-        nextStepsJson: ig.nextSteps,
-        status: ContentStatus.PUBLISHED,
-      },
-      update: {
-        title: ig.title,
-        typicalMeaning: ig.typicalMeaning,
-        whatUsuallyNext: ig.whatUsuallyNext,
-        whatToPrepare: ig.whatToPrepare,
-        whenToWait: ig.whenToWait,
-        whenToEscalate: ig.whenToEscalate,
-        likelyCausesJson: ig.likelyCauses,
-        evidenceSignalsJson: ig.evidence,
+        evidenceSignalsJson: ig.evidenceSignals,
         nextStepsJson: ig.nextSteps,
         status: ContentStatus.PUBLISHED,
       },

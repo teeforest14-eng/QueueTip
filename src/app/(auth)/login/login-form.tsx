@@ -2,7 +2,6 @@
 
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LoginLineField } from "@/components/auth/login-line-field";
 import { QueueTipLogo } from "@/components/auth/queue-tip-logo";
@@ -15,7 +14,6 @@ export function LoginForm({
 }: {
   callbackUrl?: string;
 }) {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -35,8 +33,9 @@ export function LoginForm({
       setError("Email or password is incorrect.");
       return;
     }
-    router.push(callbackUrl);
-    router.refresh();
+    // Full navigation so the session cookie from the sign-in response is always
+    // sent on the next load (avoids RSC "server error" races with router.push).
+    window.location.assign(callbackUrl);
   }
 
   return (

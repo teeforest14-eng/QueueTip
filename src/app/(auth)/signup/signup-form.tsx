@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { LoginLineField } from "@/components/auth/login-line-field";
 import { LoginLineSelect } from "@/components/auth/login-line-select";
@@ -13,7 +13,6 @@ const footerLinkClass =
   "text-neutral-500 underline decoration-neutral-200 underline-offset-[5px] transition-colors duration-200 hover:text-neutral-800 hover:decoration-neutral-400";
 
 export function SignupForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const intent = searchParams.get("intent") ?? "";
   const countries = useMemo(() => getSignupCountries(), []);
@@ -66,8 +65,7 @@ export function SignupForm() {
     }
     const onb = new URL("/app/onboarding", window.location.origin);
     if (intent) onb.searchParams.set("intent", intent);
-    router.push(onb.pathname + onb.search);
-    router.refresh();
+    window.location.assign(onb.pathname + onb.search);
   }
 
   return (

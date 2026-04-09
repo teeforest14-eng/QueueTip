@@ -14,6 +14,8 @@
   --qt-warm-cream: #fff6e8;
   /* Soft green section background (matches marketing trust band) */
   --qt-trust-section: #eef7ee;
+  /* Resolve workspace — calm blue-gray band */
+  --qt-resolve-page: #e8eef8;
   --qt-support-blue: #a9d6ff;
   --qt-trust-green: #a8ddb5;
   --qt-premium-slate: #6f8faf;
@@ -37,6 +39,7 @@
   --color-qt-primary-soft: var(--qt-primary-soft);
   --color-qt-warm-cream: var(--qt-warm-cream);
   --color-qt-trust-section: var(--qt-trust-section);
+  --color-qt-resolve-page: var(--qt-resolve-page);
   --color-qt-support: var(--qt-support-blue);
   --color-qt-trust: var(--qt-trust-green);
   --color-qt-slate: var(--qt-premium-slate);
@@ -327,5 +330,15 @@ a:focus-visible {
 .track-page a:focus-visible,
 .track-page button:focus-visible {
   outline: 2px solid var(--qt-primary);
+  outline-offset: 3px;
+}
+
+.resolve-page {
+  min-height: 100%;
+}
+
+.resolve-page a:focus-visible,
+.resolve-page button:focus-visible {
+  outline: 2px solid var(--qt-slate);
   outline-offset: 3px;
 }

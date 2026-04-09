@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 const patchSchema = z.object({
   emailEnabled: z.boolean().optional(),
   inAppEnabled: z.boolean().optional(),
+  pushEnabled: z.boolean().optional(),
   statusChanges: z.boolean().optional(),
   delayThresholds: z.boolean().optional(),
   reminders: z.boolean().optional(),

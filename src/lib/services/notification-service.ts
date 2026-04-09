@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { sendPushToUser } from "@/lib/push-server";
 
 export async function maybeNotifyStatusChange(
   userId: string,
@@ -9,21 +10,36 @@ export async function maybeNotifyStatusChange(
   });
   if (!prefs?.statusChanges) return;
 
+  const title = `Status update: ${payload.formType}`;
+  const body = `Receipt ${payload.receipt} now shows: ${payload.status}. Confirm on USCIS Case Status.`;
+
   if (prefs.inAppEnabled) {
     await prisma.alert.create({
       data: {
         userId,
         type: "status_change",
-        title: `Status update: ${payload.formType}`,
-        body: `Receipt ${payload.receipt} now shows: ${payload.status}. Always confirm on USCIS Case Status—this app uses practice data until you connect a live source.`,
+        title,
+        body: `${body} QueueTip uses your synced data—verify on the official tool when decisions matter.`,
       },
+    });
+  }
+
+  if (prefs.pushEnabled) {
+    await sendPushToUser(userId, {
+      title,
+      body,
+      url: "/app/track",
     });
   }
 
   await prisma.notificationLog.create({
     data: {
       userId,
-      channel: prefs.inAppEnabled ? "in_app" : "email",
+      channel: prefs.pushEnabled
+        ? "push"
+        : prefs.inAppEnabled
+          ? "in_app"
+          : "email",
       category: "status_change",
       title: "Status change recorded",
       body: `${payload.receipt}: ${payload.status}`,

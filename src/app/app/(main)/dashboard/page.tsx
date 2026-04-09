@@ -28,32 +28,47 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) return null;
   const userId = session.user.id;
-  const [profile, onb, groups, alerts, recs, plan] = await Promise.all([
-    prisma.userProfile.findUnique({ where: { userId } }),
-    prisma.onboardingAnswer.findUnique({ where: { userId } }),
-    prisma.caseGroup.findMany({
+
+  let profile;
+  let onb;
+  let groups;
+  let alerts;
+  let recs;
+  let plan;
+  let primaryCase;
+  let interpretation: Awaited<ReturnType<typeof interpretStatusLabel>> | undefined;
+
+  try {
+    [profile, onb, groups, alerts, recs, plan] = await Promise.all([
+      prisma.userProfile.findUnique({ where: { userId } }),
+      prisma.onboardingAnswer.findUnique({ where: { userId } }),
+      prisma.caseGroup.findMany({
+        where: { userId },
+        include: { cases: true },
+        orderBy: { updatedAt: "desc" },
+      }),
+      prisma.alert.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+      }),
+      buildRecommendationsForUser(userId),
+      getPlanForUser(userId),
+    ]);
+
+    primaryCase = await prisma.case.findFirst({
       where: { userId },
-      include: { cases: true },
       orderBy: { updatedAt: "desc" },
-    }),
-    prisma.alert.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-      take: 6,
-    }),
-    buildRecommendationsForUser(userId),
-    getPlanForUser(userId),
-  ]);
+      include: { caseGroup: true },
+    });
 
-  const primaryCase = await prisma.case.findFirst({
-    where: { userId },
-    orderBy: { updatedAt: "desc" },
-    include: { caseGroup: true },
-  });
-
-  const interpretation = primaryCase?.currentStatusLabel?.trim()
-    ? await interpretStatusLabel(primaryCase.currentStatusLabel)
-    : undefined;
+    interpretation = primaryCase?.currentStatusLabel?.trim()
+      ? await interpretStatusLabel(primaryCase.currentStatusLabel)
+      : undefined;
+  } catch (e) {
+    console.error("[QueueTip] /app/dashboard data load failed:", e);
+    throw e;
+  }
 
   const greeting = profile?.firstName?.trim()
     ? `Good to see you, ${profile.firstName.trim()}`

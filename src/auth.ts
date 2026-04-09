@@ -4,6 +4,19 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 
+/** Some hosts strip or mangle schemes; `//host` breaks `new URL()` in Auth.js. */
+function normalizePublicAuthUrlEnv() {
+  for (const key of ["AUTH_URL", "NEXTAUTH_URL"] as const) {
+    const raw = process.env[key]?.trim();
+    if (!raw) continue;
+    let u = raw;
+    if (u.startsWith("//")) u = `https:${u}`;
+    else if (!/^https?:\/\//i.test(u)) u = `https://${u.replace(/^\/+/, "")}`;
+    process.env[key] = u;
+  }
+}
+normalizePublicAuthUrlEnv();
+
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
@@ -43,6 +56,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.sub = user.id;
         token.role = user.role ?? "USER";
+        if (user.email) token.email = user.email;
       }
       return token;
     },
@@ -50,6 +64,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.sub ?? "";
         session.user.role = (token.role as "USER" | "ADMIN") ?? "USER";
+        if (token.email) session.user.email = token.email as string;
       }
       return session;
     },

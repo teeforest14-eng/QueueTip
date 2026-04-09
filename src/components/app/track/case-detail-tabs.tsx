@@ -14,13 +14,14 @@ import {
   timelineEstimateBlocks,
   estimatedCaseStage,
 } from "@/lib/track-case-intelligence";
+import { TrackEvidenceTab } from "./track-evidence-tab";
 
 const TABS = [
   { id: "status", label: "Status" },
   { id: "meaning", label: "What it means" },
   { id: "next", label: "What to do next" },
   { id: "history", label: "History" },
-  { id: "documents", label: "Documents" },
+  { id: "evidence", label: "Evidence" },
   { id: "outcomes", label: "Possible next steps" },
   { id: "timeline", label: "Timeline" },
 ] as const;
@@ -464,24 +465,8 @@ export function CaseDetailTabs({
           </div>
         ) : null}
 
-        {tab === "documents" ? (
-          <div className="rounded-[12px] border border-dashed border-neutral-200 bg-neutral-50/50 px-6 py-12 text-center">
-            <p className="text-sm font-semibold text-neutral-900">
-              No documents added yet
-            </p>
-            <p className="mx-auto mt-2 max-w-md text-sm text-neutral-600">
-              You will be able to attach receipt notices, RFEs, interview
-              letters, EAD/AP approvals, and decision notices. Uploads are not
-              wired yet — this space is reserved.
-            </p>
-            <button
-              type="button"
-              disabled
-              className="mt-6 rounded-[10px] bg-qt-primary px-4 py-2.5 text-sm font-medium text-neutral-950 opacity-50"
-            >
-              Add document (soon)
-            </button>
-          </div>
+        {tab === "evidence" ? (
+          <TrackEvidenceTab formType={data.formType} />
         ) : null}
 
         {tab === "outcomes" ? (

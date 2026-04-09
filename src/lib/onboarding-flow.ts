@@ -18,7 +18,13 @@ export async function ensureOnboardingRow(userId: string) {
 }
 
 export async function redirectIfNeedsOnboarding(userId: string) {
-  const onb = await ensureOnboardingRow(userId);
+  let onb;
+  try {
+    onb = await ensureOnboardingRow(userId);
+  } catch (e) {
+    console.error("[QueueTip] ensureOnboardingRow failed:", e);
+    throw e;
+  }
   if (!onb.completed && !onb.skipped) {
     redirect("/app/onboarding");
   }

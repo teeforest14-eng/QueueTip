@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { Card, CardTitle } from "@/components/ui/card";
+import { ContentStatus } from "@prisma/client";
 import { ContentLabel } from "@/components/content-label";
+import { ResolveSurface } from "@/components/app/resolve/resolve-surface";
+import { ResolveLegalHelpModule } from "@/components/app/resolve/resolve-legal-help-module";
+import { appPrimaryCtaClassWide } from "@/lib/app-cta-styles";
 
 export const dynamic = "force-dynamic";
+
+type OfficialLink = { label: string; url: string };
 
 export default async function ResolveIssuePage({
   params,
@@ -13,7 +18,7 @@ export default async function ResolveIssuePage({
 }) {
   const { issueId } = await params;
   const guide = await prisma.issueGuide.findFirst({
-    where: { slug: issueId, status: "PUBLISHED" },
+    where: { slug: issueId, status: ContentStatus.PUBLISHED },
     include: { category: true },
   });
   if (!guide) notFound();
@@ -21,101 +26,233 @@ export default async function ResolveIssuePage({
   const causes = guide.likelyCausesJson as string[];
   const evidence = guide.evidenceSignalsJson as string[];
   const steps = guide.nextStepsJson as string[];
+  const official = (guide.officialResourceLinksJson as OfficialLink[]) ?? [];
+  const relatedSlugs = (guide.relatedSlugsJson as string[]) ?? [];
+  const related =
+    relatedSlugs.length > 0
+      ? await prisma.issueGuide.findMany({
+          where: {
+            slug: { in: relatedSlugs },
+            status: ContentStatus.PUBLISHED,
+          },
+          select: { slug: true, title: true },
+        })
+      : [];
+  const order = new Map(relatedSlugs.map((s, i) => [s, i]));
+  related.sort(
+    (a, b) => (order.get(a.slug) ?? 99) - (order.get(b.slug) ?? 99),
+  );
+
+  const whyWorry =
+    guide.whyPeopleWorry?.trim() ||
+    "Applicants often worry when facts feel uncertain or timelines stretch; structured checks reduce guesswork.";
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto max-w-3xl space-y-8 pb-8">
       <Link
         href="/app/resolve"
-        className="text-sm font-medium text-qt-slate hover:underline"
+        className="inline-flex text-sm font-semibold text-qt-slate underline-offset-2 hover:underline"
       >
         ← All issues
       </Link>
-      <div>
-        <p className="text-sm text-qt-text-secondary">{guide.category.name}</p>
-        <h1 className="mt-1 text-2xl font-semibold text-qt-text">
+
+      <header>
+        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-qt-slate">
+          {guide.category.name}
+        </p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-neutral-900">
           {guide.title}
         </h1>
-      </div>
+        {guide.summary ? (
+          <p className="mt-3 text-base leading-relaxed text-neutral-600">
+            {guide.summary}
+          </p>
+        ) : null}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold capitalize text-neutral-800">
+            Urgency: {guide.urgencyLevel}
+          </span>
+          {(guide.formsAffectedJson as string[])?.length ? (
+            <span className="text-xs text-neutral-500">
+              Forms: {(guide.formsAffectedJson as string[]).join(", ")}
+            </span>
+          ) : null}
+        </div>
+      </header>
 
-      <Card>
+      {guide.lawyerRecommended ? <ResolveLegalHelpModule variant="detail" /> : null}
+
+      <ResolveSurface className="p-6 sm:p-8">
         <ContentLabel kind="typical" />
-        <h2 className="mt-3 font-medium text-qt-text">What this usually means</h2>
-        <p className="mt-2 text-sm text-qt-text-secondary">
+        <h2 className="mt-3 text-lg font-semibold text-neutral-900">
+          Why people worry about this
+        </h2>
+        <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+          {whyWorry}
+        </p>
+      </ResolveSurface>
+
+      <ResolveSurface className="p-6 sm:p-8">
+        <ContentLabel kind="typical" />
+        <h2 className="mt-3 text-lg font-semibold text-neutral-900">
+          What this issue usually means
+        </h2>
+        <p className="mt-3 text-sm leading-relaxed text-neutral-700">
           {guide.typicalMeaning}
         </p>
-      </Card>
+      </ResolveSurface>
 
-      <Card>
-        <h2 className="font-medium text-qt-text">What often comes next</h2>
-        <p className="mt-2 text-sm text-qt-text-secondary">
+      <ResolveSurface className="p-6 sm:p-8">
+        <ContentLabel kind="official" />
+        <h2 className="mt-3 text-lg font-semibold text-neutral-900">
+          What to verify first
+        </h2>
+        <p className="mt-2 text-xs text-neutral-500">
+          Factual checks before you assume a worst-case outcome. Not a
+          guarantee of what USCIS will do.
+        </p>
+        <ul className="mt-4 space-y-2 text-sm text-neutral-700">
+          {evidence.map((c) => (
+            <li
+              key={c}
+              className="flex gap-2 before:mt-2 before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-qt-slate/70 before:content-['']"
+            >
+              {c}
+            </li>
+          ))}
+        </ul>
+      </ResolveSurface>
+
+      <ResolveSurface className="p-6 sm:p-8">
+        <ContentLabel kind="action" />
+        <h2 className="mt-3 text-lg font-semibold text-neutral-900">
+          What to do next
+        </h2>
+        <p className="mt-3 text-sm leading-relaxed text-neutral-700">
           {guide.whatUsuallyNext}
         </p>
-      </Card>
-
-      <Card>
-        <ContentLabel kind="action" />
-        <h2 className="mt-3 font-medium text-qt-text">What to prepare</h2>
-        <p className="mt-2 text-sm text-qt-text-secondary">
+        <h3 className="mt-6 text-sm font-semibold text-neutral-900">
+          Suggested steps (general)
+        </h3>
+        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-neutral-700">
+          {steps.map((c) => (
+            <li key={c}>{c}</li>
+          ))}
+        </ol>
+        <h3 className="mt-6 text-sm font-semibold text-neutral-900">
+          What to prepare
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-neutral-700">
           {guide.whatToPrepare}
         </p>
-      </Card>
+      </ResolveSurface>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <ResolveSurface className="p-6">
           <ContentLabel kind="wait" />
-          <h2 className="mt-3 font-medium text-qt-text">When to wait</h2>
-          <p className="mt-2 text-sm text-qt-text-secondary">
+          <h2 className="mt-3 text-lg font-semibold text-neutral-900">
+            When waiting may still be normal
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-neutral-700">
             {guide.whenToWait}
           </p>
-        </Card>
-        <Card>
+        </ResolveSurface>
+        <ResolveSurface className="p-6">
           <ContentLabel kind="escalate" />
-          <h2 className="mt-3 font-medium text-qt-text">When to escalate</h2>
-          <p className="mt-2 text-sm text-qt-text-secondary">
+          <h2 className="mt-3 text-lg font-semibold text-neutral-900">
+            When legal help may be important
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-neutral-700">
             {guide.whenToEscalate}
           </p>
-        </Card>
+        </ResolveSurface>
       </div>
 
-      <Card>
-        <CardTitle>Likely causes (patterns, not certainty)</CardTitle>
-        <ul className="mt-4 list-inside list-disc text-sm text-qt-text-secondary">
+      <ResolveSurface className="p-6 sm:p-8">
+        <ContentLabel kind="typical" />
+        <h2 className="mt-3 text-lg font-semibold text-neutral-900">
+          Common patterns (not certainty)
+        </h2>
+        <ul className="mt-4 list-inside list-disc space-y-2 text-sm text-neutral-700">
           {causes.map((c) => (
             <li key={c}>{c}</li>
           ))}
         </ul>
-      </Card>
+      </ResolveSurface>
 
-      <Card>
-        <CardTitle>Evidence / signals you might notice</CardTitle>
-        <ul className="mt-4 list-inside list-disc text-sm text-qt-text-secondary">
-          {evidence.map((c) => (
-            <li key={c}>{c}</li>
-          ))}
-        </ul>
-      </Card>
+      {official.length ? (
+        <ResolveSurface className="p-6 sm:p-8">
+          <ContentLabel kind="official" />
+          <h2 className="mt-3 text-lg font-semibold text-neutral-900">
+            Official resources
+          </h2>
+          <ul className="mt-4 space-y-2">
+            {official.map((o) => (
+              <li key={o.url + o.label}>
+                <a
+                  href={o.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm font-medium text-qt-slate underline-offset-2 hover:underline"
+                >
+                  {o.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </ResolveSurface>
+      ) : null}
 
-      <Card>
-        <CardTitle>Recommended next steps</CardTitle>
-        <ul className="mt-4 list-inside list-decimal space-y-2 text-sm text-qt-text-secondary">
-          {steps.map((c) => (
-            <li key={c}>{c}</li>
-          ))}
-        </ul>
-      </Card>
+      {related.length ? (
+        <ResolveSurface className="p-6 sm:p-8">
+          <h2 className="text-lg font-semibold text-neutral-900">
+            Related issues
+          </h2>
+          <ul className="mt-4 space-y-2">
+            {related.map((r) => (
+              <li key={r.slug}>
+                <Link
+                  href={`/app/resolve/${r.slug}`}
+                  className="text-sm font-medium text-qt-slate underline-offset-2 hover:underline"
+                >
+                  {r.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </ResolveSurface>
+      ) : null}
+
+      <ResolveSurface className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-neutral-900">
+            Need personalized guidance?
+          </p>
+          <p className="mt-1 text-sm text-neutral-600">
+            Use the Help Directory for accredited professionals—not informal
+            advice.
+          </p>
+        </div>
+        <Link
+          href="/app/help-directory"
+          className={appPrimaryCtaClassWide + " shrink-0 text-center"}
+        >
+          Help Directory
+        </Link>
+      </ResolveSurface>
 
       <div className="flex flex-wrap gap-3">
         <Link
           href="/app/tools"
-          className="rounded-lg bg-qt-slate px-4 py-2 text-sm font-medium text-white hover:opacity-95"
+          className="rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 shadow-sm hover:bg-neutral-50"
         >
           Official tools
         </Link>
         <Link
-          href="/app/help-directory"
-          className="rounded-lg border border-qt-soft-gray bg-white px-4 py-2 text-sm font-medium hover:bg-qt-mist"
+          href="/app/resolve"
+          className="rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 shadow-sm hover:bg-neutral-50"
         >
-          Help directory
+          All issues
         </Link>
       </div>
     </div>

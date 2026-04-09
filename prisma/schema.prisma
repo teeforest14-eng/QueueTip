@@ -66,6 +66,7 @@ model User {
   accounts              Account[]
   sessions              Session[]
   passwordResetTokens   PasswordResetToken[]
+  pushSubscriptions     PushSubscription[]
 }
 
 model Account {
@@ -114,6 +115,7 @@ model PasswordResetToken {
 model UserProfile {
   id                    String  @id @default(cuid())
   userId                String  @unique
+  displayName           String?
   firstName             String?
   lastName              String?
   preferredLanguage     String  @default("en")
@@ -158,11 +160,24 @@ model NotificationPreference {
   userId            String  @unique
   emailEnabled      Boolean @default(true)
   inAppEnabled      Boolean @default(true)
+  pushEnabled       Boolean @default(false)
   statusChanges     Boolean @default(true)
   delayThresholds   Boolean @default(true)
   reminders         Boolean @default(true)
   milestones        Boolean @default(true)
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model CaseGroup {
@@ -335,6 +350,14 @@ model IssueGuide {
   categoryId          String
   slug                String        @unique
   title               String
+  summary             String        @default("") @db.Text
+  urgencyLevel        String        @default("moderate")
+  triageLane          String        @default("review")
+  formsAffectedJson   Json          @default("[]")
+  lawyerRecommended   Boolean       @default(false)
+  officialResourceLinksJson Json    @default("[]")
+  relatedSlugsJson    Json          @default("[]")
+  whyPeopleWorry      String        @default("") @db.Text
   typicalMeaning      String        @db.Text
   whatUsuallyNext     String        @db.Text
   whatToPrepare       String        @db.Text

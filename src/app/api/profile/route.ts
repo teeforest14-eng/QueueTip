@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
 const saveSchema = z.object({
+  displayName: z.string().max(120).default(""),
   firstName: z.string().max(120).default(""),
   lastName: z.string().max(120).default(""),
   preferredLanguage: z.string().min(1).max(32),
@@ -39,6 +40,7 @@ export async function PATCH(req: Request) {
   const userId = session.user.id;
 
   const row = {
+    displayName: trimToNull(v.displayName),
     firstName: trimToNull(v.firstName),
     lastName: trimToNull(v.lastName),
     preferredLanguage: v.preferredLanguage.trim() || "en",

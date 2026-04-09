@@ -52,15 +52,22 @@ export async function PATCH(req: Request) {
   }
 
   const data = parsed.data;
-  let routedPath = onb.routedPath;
-
-  if (data.completed) {
-    const merged = {
-      journeyCategory: data.journeyCategory ?? onb.journeyCategory,
-      alreadyFiled: data.alreadyFiled ?? onb.alreadyFiled,
-    };
-    routedPath = defaultPathForOnboarding(merged);
-  }
+  const mergedJourney =
+    data.journeyCategory !== undefined
+      ? data.journeyCategory
+      : onb.journeyCategory;
+  const mergedFiled =
+    data.alreadyFiled !== undefined ? data.alreadyFiled : onb.alreadyFiled;
+  const shouldRecomputePath =
+    data.completed ||
+    data.journeyCategory !== undefined ||
+    data.alreadyFiled !== undefined;
+  const routedPath = shouldRecomputePath
+    ? defaultPathForOnboarding({
+        journeyCategory: mergedJourney,
+        alreadyFiled: mergedFiled,
+      })
+    : onb.routedPath;
 
   const updated = await prisma.onboardingAnswer.update({
     where: { userId },
@@ -77,7 +84,7 @@ export async function PATCH(req: Request) {
       hasReceipt: data.hasReceipt === undefined ? undefined : data.hasReceipt,
       currentConcern:
         data.currentConcern === undefined ? undefined : data.currentConcern,
-      ...(data.completed ? { routedPath } : {}),
+      ...(shouldRecomputePath ? { routedPath } : {}),
       answersJson:
         data.answersJson !== undefined
           ? (data.answersJson as Prisma.InputJsonValue)
